@@ -1,16 +1,8 @@
-from enum import Enum
-
-from models.HeroHistory import HeroHistory
-from utils.DataStore import DataStore
-
-
-class Rarity(Enum):
-    COMMON = "common"
-    RARE = "rare"
-    EPIC = "epic"
-
-    def isCommon(self):
-        return self.value == self.COMMON.value
+from medalcalc.models.Element import Element
+from medalcalc.models.HeroHistory import HeroHistory
+from common.utils.DateUtils import DateUtils
+from medalcalc.models.MedalType import MedalType
+from medalcalc.models.Rarity import Rarity
 
 
 class Hero:
@@ -26,6 +18,12 @@ class Hero:
         7: 4880
     }
 
+    __MAGIC_MEDALS = {
+        Rarity.COMMON: 30,
+        Rarity.RARE: 10,
+        Rarity.EPIC: 4
+    }
+
     history: [HeroHistory] = []
 
     name: str
@@ -34,8 +32,19 @@ class Hero:
     rarity: Rarity
     mmUsed: int = 0
     extraMedals: bool
+    element: Element
 
-    def __init__(self, name, stars, medals, rarity=Rarity.RARE, extraMedals=False):
+    medalTypes: dict = {
+        MedalType.DEFAULT: 0,
+        MedalType.DUNGEON: 0,
+        MedalType.DUNGEON_X2: 0,
+        MedalType.GUILD_SHOP: 0,
+        MedalType.MM: 0,
+        MedalType.REQUEST: 0,
+        MedalType.CC: 0,
+    }
+
+    def __init__(self, name, stars, medals, element: Element, rarity=Rarity.RARE, extraMedals=False):
         self.name = name
         self.stars = stars
         self.medals = medals
@@ -44,7 +53,7 @@ class Hero:
         self.extraMedals = extraMedals
         self.element = element
 
-    def increment(self, medalIncrement: int = 1, extraMedals=False):
+    def increment(self, medalIncrement: int = 1, extraMedals=False, type: MedalType = MedalType.DEFAULT):
         originalStars = self.stars
         nextMedals = self.medals + medalIncrement
         needed = self.__MEDALS_NEEDED
@@ -55,6 +64,8 @@ class Hero:
             if total >= needed[star]:
                 resultStars = star
                 break
+
+        self.medalTypes[type] += medalIncrement
 
         resultMedals = 0
         if resultStars < 7:
@@ -76,14 +87,15 @@ class Hero:
         else:
             medals = 10 if isSunday else 0
 
-        self.increment(medals)
+        self.increment(medals, type=MedalType.REQUEST)
 
     def __addHistory(self, star: int):
-        day = DataStore.currentDate
-        days = DataStore.getDays()
+        day = DateUtils.currentDate
+        days = DateUtils.getDays()
         if days == 0:
             return
         historyEntry = HeroHistory(self.name,  day, days, star, mm=self.mmUsed)
+        historyEntry.medalTypes = self.medalTypes.copy()
         self.history.insert(0, historyEntry)
 
     def isMaxed(self):
@@ -101,12 +113,18 @@ class Hero:
             history.print()
 
     def incrementMagicMedals(self, magicMedals: int):
-        medalsFromMm = 4
-        if self.isCommon():
-            medalsFromMm = 30
-        elif self.rarity == Rarity.RARE:
-            medalsFromMm = 10
+        if magicMedals == 0:
+            return 0.0
 
-        self.mmUsed += int(magicMedals)
-        medals = int(magicMedals) * medalsFromMm
-        self.increment(medals)
+        medalsFromMm = self.__MAGIC_MEDALS.get(self.rarity)
+
+        self.mmUsed += 1
+        magicMedals -= 1
+        self.increment(medalsFromMm, type=MedalType.MM)
+        if self.isMaxed():
+            return float(magicMedals)
+        return self.incrementMagicMedals(magicMedals)
+
+    def incrementGuildCoin(self, guildCoins: int):
+        medals = max(int(guildCoins / self.rarity.getGuildCoins()) - 1, 0)
+        self.increment(medals, type=MedalType.GUILD_SHOP)
