@@ -1,5 +1,7 @@
 from datetime import date
 
+from medalcalc.models.MedalType import MedalType
+
 
 class HeroHistory:
 
@@ -30,7 +32,17 @@ class HeroHistory:
     days: int
     mm: int
 
-    def __init__(self, name: str, day: date, days: int, star=7, mm=0):
+    medalTypes: dict = {
+        MedalType.DEFAULT: 0,
+        MedalType.DUNGEON: 0,
+        MedalType.DUNGEON_X2: 0,
+        MedalType.GUILD_SHOP: 0,
+        MedalType.MM: 0,
+        MedalType.REQUEST: 0,
+        MedalType.CC: 0,
+    }
+
+    def __init__(self, name: str, day: date, days: int, star=7, mm=0, type: MedalType = MedalType.DEFAULT):
         self.name = name
         self.star = star
         self.day = day
@@ -47,7 +59,7 @@ class HeroHistory:
         days = str(self.days).rjust(self.DAYS_LENGTH)
 
         mm = ""
-        if (self.mm > 0):
+        if self.mm > 0:
             mm = self.mm
         mm = str(mm).rjust(self.MM_LENGTH)
 
@@ -57,7 +69,19 @@ class HeroHistory:
             start = self.YELLOW
             end = self.END
 
-        print(start + f"{star} {name} {day} {days} {mm}" + end)
+
+        blank = "".ljust(14)
+        medalInfo = self.getMedalInfo()
+        print(start + f"{star} {name} {day} {days} {mm} {blank} {medalInfo}" + end)
+
+    def getMedalInfo(self) -> str:
+        dungeon = str(self.medalTypes[MedalType.DUNGEON]).rjust(4)
+        dungeonX2 = str(self.medalTypes[MedalType.DUNGEON_X2]).rjust(4)
+        gc = str(self.medalTypes[MedalType.GUILD_SHOP]).rjust(4)
+        mm = str(self.medalTypes[MedalType.MM]).rjust(4)
+        request = str(self.medalTypes[MedalType.REQUEST]).rjust(4)
+        cc = str(self.medalTypes[MedalType.CC]).rjust(4)
+        return f"{dungeon} {dungeonX2} {gc} {mm} {request} {cc}"
 
     @staticmethod
     def printHeader(element: str):
@@ -67,7 +91,17 @@ class HeroHistory:
         days = "DAYS".rjust(HeroHistory.DAYS_LENGTH)
         mm = "MM".rjust(HeroHistory.MM_LENGTH)
         print(HeroHistory.BOLD + element.upper() + HeroHistory.END)
-        print(HeroHistory.BOLD + f"{star} {name} {day} {days} {mm}" + HeroHistory.END)
+
+        blank = "".rjust(14)
+        dungeon = "DNG".rjust(4)
+        dungeonX2 = "X2".rjust(4)
+        gc = "GC".rjust(4)
+        mm2 = "MM".rjust(4)
+        request = "REQ".rjust(4)
+        cc = "CC".rjust(4)
+        medalInfo = f"{dungeon} {dungeonX2} {gc} {mm2} {request} {cc}"
+
+        print(HeroHistory.BOLD + f"{star} {name} {day} {days} {mm} {blank} {medalInfo}" + HeroHistory.END)
 
     @staticmethod
     def printFooter():
