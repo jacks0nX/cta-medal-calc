@@ -42,6 +42,7 @@ class Hero:
         self.rarity = rarity
         self.history = []
         self.extraMedals = extraMedals
+        self.element = element
 
     def increment(self, medalIncrement: int = 1, extraMedals=False):
         originalStars = self.stars
