@@ -72,7 +72,8 @@ class HeroHistory:
 
         blank = "".ljust(14)
         medalInfo = self.getMedalInfo()
-        print(start + f"{star} {name} {day} {days} {mm} {blank} {medalInfo}" + end)
+        # print(start + f"{star} {name} {day} {days} {mm} {blank} {medalInfo}" + end)
+        print(start + f"{star} {name} {day} {days} {mm}" + end)
 
     def getMedalInfo(self) -> str:
         dungeon = str(self.medalTypes[MedalType.DUNGEON]).rjust(4)
@@ -101,7 +102,8 @@ class HeroHistory:
         cc = "CC".rjust(4)
         medalInfo = f"{dungeon} {dungeonX2} {gc} {mm2} {request} {cc}"
 
-        print(HeroHistory.BOLD + f"{star} {name} {day} {days} {mm} {blank} {medalInfo}" + HeroHistory.END)
+        # print(HeroHistory.BOLD + f"{star} {name} {day} {days} {mm} {blank} {medalInfo}" + HeroHistory.END)
+        print(HeroHistory.BOLD + f"{star} {name} {day} {days} {mm}" + HeroHistory.END)
 
     @staticmethod
     def printFooter():

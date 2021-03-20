@@ -41,7 +41,8 @@ class MedalCalculator:
         self.showHistory = MainSettings.config.getboolean("calculator", "showHistory")
         self.showHistory = MainSettings.config.getboolean("calculator", "showHistory")
         for value in MainSettings.config.get("calculator", "heroFilter").split(","):
-            self.heroFilter.append(value.strip())
+            if value != '':
+                self.heroFilter.append(value.strip())
         farmElements = re.split(' +', MainSettings.config.get("calculator", "elements"))
         for element in farmElements:
             self.calcElements.append(element)

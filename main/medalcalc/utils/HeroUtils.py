@@ -34,6 +34,7 @@ class HeroUtils:
 
     request: List[str]
     requestSunday: List[str]
+    crusadeHeroes: List[str]
 
     magicMedals: float
     magicMedalHero: List[str]
@@ -48,11 +49,10 @@ class HeroUtils:
 
     raidUtils: RaidEventUtils
 
-    crusadeCoins: int = 600
-    CRUSADE_COINS: int = 600
+    crusadeCoins: int = 0
+    crusadeCoinsPerCrusade: int
     CRUSADE_MEDALS: int = 10
     CRUSADE_COST: int = 250
-    crusadeHero: str = 'ice cube'
 
     def __init__(self):
         self.raidUtils = RaidEventUtils()
@@ -66,6 +66,8 @@ class HeroUtils:
         self.magicMedalHero = self.__splitNames(config.get("settings", "mmHero"))
         self.magicMedalsDaily = config.getfloat("settings", "mmDaily")
         self.requestSunday = self.__splitNames(config.get("settings", "requestSunday"))
+        self.crusadeHeroes = self.__splitNames(config.get("settings", "crusadeHero"))
+        self.crusadeCoinsPerCrusade = config.getfloat("settings", "crusadeCoins")
 
         self.guildShopCost[Rarity.COMMON] = config.getint("settings", "gcCommon")
         self.guildShopCost[Rarity.RARE] = config.getint("settings", "gcRare")
@@ -150,6 +152,9 @@ class HeroUtils:
     def getMmHero(self) -> str:
         return self.magicMedalHero[0] if self.magicMedalHero else None
 
+    def getCrusadeHero(self) -> str:
+        return self.crusadeHeroes[0] if self.crusadeHeroes else None
+
     def removeRequestHero(self, hero: Hero):
         try:
             self.request.remove(hero.name)
@@ -161,6 +166,10 @@ class HeroUtils:
             pass
         try:
             self.magicMedalHero.remove(hero.name)
+        except ValueError:
+            pass
+        try:
+            self.crusadeHeroes.remove(hero.name)
         except ValueError:
             pass
 
@@ -207,14 +216,14 @@ class HeroUtils:
 
     def crusade(self):
         if DateUtils.days % 2 == 0:
-            self.crusadeCoins += self.CRUSADE_COINS
+            self.crusadeCoins += self.crusadeCoinsPerCrusade
             if self.crusadeCoins >= self.CRUSADE_COST:
                 buys: int = int(self.crusadeCoins / self.CRUSADE_COST)
                 medals: int = buys * self.CRUSADE_MEDALS
-                hero: Hero = self.getHero(self.crusadeHero)
+                hero: Hero = self.getHero(self.getCrusadeHero())
                 if hero:
                     self.crusadeCoins -= buys * self.CRUSADE_COST
-                    # hero.increment(medals)
+                    hero.increment(medals)
 
     def crusherChest(self):
         self.raidUtils.crusherChest(self.getAllHeroes())
